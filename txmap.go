@@ -21,7 +21,7 @@ type Request struct {
 	requestType RequestType
 	key         int
 	value       int
-	ret         chan int
+	result      chan int
 	tx          chan Request
 }
 
@@ -48,7 +48,7 @@ func HandleRequests(m map[int]int, r chan Request) {
 		req := <-r
 		switch req.requestType {
 		case Get:
-			req.ret <- m[req.key]
+			req.result <- m[req.key]
 		case Set:
 			m[req.key] = req.value
 		case BeginTx:
@@ -60,12 +60,20 @@ func HandleRequests(m map[int]int, r chan Request) {
 }
 
 func (txm *TxMap) Set(key int, value int) {
-	txm.req <- Request{Set, key, value, nil, nil}
+	txm.req <- Request{
+		requestType: Set,
+		key:         key,
+		value:       value,
+	}
 }
 
 func (txm *TxMap) Get(key int) int {
 	result := make(chan int)
-	txm.req <- Request{Get, key, 0, result, nil}
+	txm.req <- Request{
+		requestType: Get,
+		key:         key,
+		result:      result,
+	}
 	return <-result
 }
 
@@ -73,11 +81,16 @@ func (txm *TxMap) BeginTx() {
 	tmp := txm.req
 	txm.tx <- tmp
 	txm.req = make(chan Request)
-	tmp <- Request{BeginTx, 0, 0, nil, txm.req}
+	tmp <- Request{
+		requestType: BeginTx,
+		tx:          txm.req,
+	}
 }
 
 func (txm *TxMap) EndTx() {
-	txm.req <- Request{EndTx, 0, 0, nil, nil}
+	txm.req <- Request{
+		requestType: EndTx,
+	}
 	txm.req = <-txm.tx
 }
 
