@@ -11,48 +11,49 @@ func init() {
 type RequestType int
 
 const (
-	Set RequestType = iota
-	Get
-	BeginTx
-	EndTx
+	SET Type = iota
+	GET
+	BEGINTX
+	ENDTX
 )
 
 type Request struct {
-	requestType RequestType
-	key         int
-	value       int
-	result      chan int
-	tx          chan Request
+	Type   Type
+	Key    int
+	Value  int
+	Result chan int
+	Tx     chan Request
 }
 
 type TxMap struct {
-	req chan Request      // メインループ
-	tx  chan chan Request // tx に入った時の退避用
+	Tx     chan Request      // メインループ
+	Parent chan chan Request // tx に入った時の退避用
 }
 
 func NewTxMap() *TxMap {
-	txm := new(TxMap)
-	txm.req = make(chan Request)
-	txm.tx = make(chan chan Request, 1)
-	go runMap(txm.req)
+	txm := &TxMap{
+		Tx:     make(chan Request),
+		Parent: make(chan chan Request, 1),
+	}
+
+	go func() {
+		m := make(map[int]int) // 実際の map
+		HandleRequests(m, txm.Tx)
+	}()
+
 	return txm
 }
 
-func runMap(r chan Request) {
-	m := make(map[int]int)
-	HandleRequests(m, r)
-}
-
-func HandleRequests(m map[int]int, r chan Request) {
+func HandleRequests(m map[int]int, tx chan Request) {
 	for {
-		req := <-r
-		switch req.requestType {
+		req := <-tx
+		switch req.RequestType {
 		case Get:
-			req.result <- m[req.key]
+			req.Result <- m[req.key]
 		case Set:
-			m[req.key] = req.value
+			m[req.key] = req.Value
 		case BeginTx:
-			HandleRequests(m, req.tx)
+			HandleRequests(m, req.Tx)
 		case EndTx:
 			return
 		}
@@ -60,30 +61,30 @@ func HandleRequests(m map[int]int, r chan Request) {
 }
 
 func (txm *TxMap) Set(key int, value int) {
-	txm.req <- Request{
-		requestType: Set,
-		key:         key,
-		value:       value,
+	txm.Tx <- Request{
+		RequestType: SET,
+		Key:         key,
+		Value:       value,
 	}
 }
 
 func (txm *TxMap) Get(key int) int {
 	result := make(chan int)
-	txm.req <- Request{
-		requestType: Get,
-		key:         key,
-		result:      result,
+	txm.Tx <- Request{
+		RequestType: Get,
+		Key:         key,
+		Result:      result,
 	}
 	return <-result
 }
 
 func (txm *TxMap) BeginTx() {
-	tmp := txm.req
-	txm.tx <- tmp
-	txm.req = make(chan Request)
+	tmp := txm.Tx
+	txm.Parent <- tmp           // buffer chan に保存しておく
+	txm.Tx = make(chan Request) // 小階層の Tx
 	tmp <- Request{
-		requestType: BeginTx,
-		tx:          txm.req,
+		RequestType: BEGINTX,
+		Tx:          txm.Tx,
 	}
 }
 
