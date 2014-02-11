@@ -1,6 +1,7 @@
 package txmap
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -8,7 +9,7 @@ func init() {
 	log.SetFlags(log.Lshortfile)
 }
 
-type RequestType int
+type Type int
 
 const (
 	SET Type = iota
@@ -35,6 +36,7 @@ func NewTxMap() *TxMap {
 		Tx:     make(chan Request),
 		Parent: make(chan chan Request, 1),
 	}
+	log.Printf("new TxMap: %+v\n", txm)
 
 	go func() {
 		m := make(map[int]int) // 実際の map
@@ -45,54 +47,70 @@ func NewTxMap() *TxMap {
 }
 
 func HandleRequests(m map[int]int, tx chan Request) {
+	log.Println("handle request")
 	for {
 		req := <-tx
-		switch req.RequestType {
-		case Get:
-			req.Result <- m[req.key]
-		case Set:
-			m[req.key] = req.Value
-		case BeginTx:
+		switch req.Type {
+		case GET:
+			log.Println("GET", m)
+			req.Result <- m[req.Key]
+		case SET:
+			log.Println("SET", m)
+			m[req.Key] = req.Value
+		case BEGINTX:
+			log.Println("BEGINTX")
 			HandleRequests(m, req.Tx)
-		case EndTx:
+		case ENDTX:
+			log.Println("ENDTX")
 			return
 		}
 	}
 }
 
+func (txm *TxMap) String() string {
+	return fmt.Sprintf("Tx: %v, Parent: %v", txm.Tx, len(txm.Parent))
+}
+
 func (txm *TxMap) Set(key int, value int) {
-	txm.Tx <- Request{
-		RequestType: SET,
-		Key:         key,
-		Value:       value,
+	request := Request{
+		Type:  SET,
+		Key:   key,
+		Value: value,
 	}
+	log.Printf("SET request %+v", request)
+	txm.Tx <- request
 }
 
 func (txm *TxMap) Get(key int) int {
 	result := make(chan int)
-	txm.Tx <- Request{
-		RequestType: Get,
-		Key:         key,
-		Result:      result,
+	request := Request{
+		Type:   GET,
+		Key:    key,
+		Result: result,
 	}
+	log.Printf("GET request %+v", request)
+	txm.Tx <- request
 	return <-result
 }
 
 func (txm *TxMap) BeginTx() {
-	tmp := txm.Tx
-	txm.Parent <- tmp           // buffer chan に保存しておく
+	log.Printf("BeginTx %+v", txm)
+	parent := txm.Tx
+	log.Printf("parent %+v", parent)
+	txm.Parent <- parent        // buffer chan に保存しておく
 	txm.Tx = make(chan Request) // 小階層の Tx
-	tmp <- Request{
-		RequestType: BEGINTX,
-		Tx:          txm.Tx,
+	parent <- Request{
+		Type: BEGINTX,
+		Tx:   txm.Tx,
 	}
 }
 
 func (txm *TxMap) EndTx() {
-	txm.req <- Request{
-		requestType: EndTx,
+	log.Println("EndTx")
+	txm.Tx <- Request{
+		Type: ENDTX,
 	}
-	txm.req = <-txm.tx
+	txm.Tx = <-txm.Parent
 }
 
 // func main() {

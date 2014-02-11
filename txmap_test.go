@@ -30,4 +30,5 @@ func TestTxMap(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+	t.Log(txMap.Get(0))
 }
