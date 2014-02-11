@@ -113,6 +113,7 @@ func (txm *TxMap) EndTx() {
 		Type: ENDTX,
 	}
 	txm.Tx = <-txm.Parent
+	log.Printf("BeginTx %+v", txm)
 }
 
 // func main() {
