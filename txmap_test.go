@@ -12,8 +12,7 @@ func init() {
 
 func TestTxMap(t *testing.T) {
 	var wg sync.WaitGroup
-	r := make(chan Request)
-	go RunMap(r)
+	r := NewTxMap()
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		go func() {

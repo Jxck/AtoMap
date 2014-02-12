@@ -82,3 +82,9 @@ func RunMap(r chan Request) {
 	m := make(map[int]int)
 	HandleRequests(m, r)
 }
+
+func NewTxMap() chan Request {
+	r := make(chan Request)
+	go RunMap(r)
+	return r
+}
