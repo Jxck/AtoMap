@@ -18,7 +18,7 @@ func TestAtoMap(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			tx := Lock(txMap)
+			tx := Lock(txMap.Tx)
 			j := Get(tx, 0)
 			j = j + 1
 			Set(tx, 0, j)
@@ -33,5 +33,5 @@ func TestAtoMap(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	t.Log(Get(txMap, 0))
+	t.Log(Get(txMap.Tx, 0))
 }

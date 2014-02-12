@@ -25,13 +25,20 @@ type request struct {
 	tx          chan request
 }
 
-func NewAtoMap() chan request {
-	txmap := make(chan request)
+type AtoMap struct {
+	Tx chan request
+}
+
+func NewAtoMap() *AtoMap {
+	tx := make(chan request)
 	go func() {
 		m := make(map[int]int)
-		HandleRequests(m, txmap)
+		HandleRequests(m, tx)
 	}()
-	return txmap
+	atomap := &AtoMap{
+		Tx: tx,
+	}
+	return atomap
 }
 
 func HandleRequests(m map[int]int, r chan request) {
