@@ -94,13 +94,9 @@ func (txm *TxMap) Get(key int) int {
 }
 
 func (txm *TxMap) BeginTx() {
-	log.Printf("BeginTx %+v", txm)
+	txm.Parent <- txm.Tx // buffer chan に保存しておく
 	parent := txm.Tx
-	log.Printf("parent %+v", parent)
-	txm.Parent <- parent // buffer chan に保存しておく
-	log.Println(txm)
 	txm.Tx = make(chan Request) // 小階層の Tx
-	log.Println(txm)
 	parent <- Request{
 		Type: BEGINTX,
 		Tx:   txm.Tx,

@@ -13,7 +13,7 @@ func init() {
 func TestTxMap(t *testing.T) {
 	var wg sync.WaitGroup
 	txMap := NewTxMap()
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
