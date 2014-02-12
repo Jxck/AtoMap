@@ -75,5 +75,37 @@ func TestConcurrent(t *testing.T) {
 			}
 		}()
 	}
+}
 
+func TestNest(t *testing.T) {
+	m := NewAtoMap()
+	m.Set(0, 0)
+
+	m1 := m.Lock()
+	m1.Set(0, 1)
+
+	m2 := m1.Lock()
+	m2.Set(0, 2)
+
+	m3 := m2.Lock()
+
+	m3.Set(0, 3)
+	if m3.Get(0) != 3 {
+		t.Errorf("\ngot  %v\nwant %v", m3.Get(0), 3)
+	}
+	m3.Unlock()
+
+	if m2.Get(0) != 3 {
+		t.Errorf("\ngot  %v\nwant %v", m2.Get(0), 3)
+	}
+	m2.Unlock()
+
+	if m1.Get(0) != 3 {
+		t.Errorf("\ngot  %v\nwant %v", m1.Get(0), 3)
+	}
+	m1.Unlock()
+
+	if m.Get(0) != 3 {
+		t.Errorf("\ngot  %v\nwant %v", m.Get(0), 3)
+	}
 }
