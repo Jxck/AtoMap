@@ -25,7 +25,7 @@ type request struct {
 	tx          chan request
 }
 
-func NewTxMap() chan request {
+func NewAtoMap() chan request {
 	txmap := make(chan request)
 	go func() {
 		m := make(map[int]int)

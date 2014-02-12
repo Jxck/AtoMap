@@ -10,9 +10,9 @@ func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-func TestTxMap(t *testing.T) {
+func TestAtoMap(t *testing.T) {
 	var wg sync.WaitGroup
-	txMap := NewTxMap()
+	txMap := NewAtoMap()
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		go func() {
