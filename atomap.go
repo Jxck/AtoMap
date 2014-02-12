@@ -1,5 +1,7 @@
 package atomap
 
+// generated from https://github.com/Jxck/AtoMap
+
 type RequestType int
 
 const (
