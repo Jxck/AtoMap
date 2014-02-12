@@ -33,7 +33,7 @@ func NewAtoMap() *AtoMap {
 	tx := make(chan request)
 	go func() {
 		m := make(map[int]int)
-		HandleRequests(m, tx)
+		handleRequests(m, tx)
 	}()
 	atomap := &AtoMap{
 		Tx: tx,
@@ -41,7 +41,7 @@ func NewAtoMap() *AtoMap {
 	return atomap
 }
 
-func HandleRequests(m map[int]int, r chan request) {
+func handleRequests(m map[int]int, r chan request) {
 	for {
 		req := <-r
 		switch req.requestType {
@@ -50,7 +50,7 @@ func HandleRequests(m map[int]int, r chan request) {
 		case SET:
 			m[req.key] = req.value
 		case LOCK:
-			HandleRequests(m, req.tx)
+			handleRequests(m, req.tx)
 		case UNLOCK:
 			return
 		}
