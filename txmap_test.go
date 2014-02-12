@@ -12,13 +12,13 @@ func init() {
 
 func TestTxMap(t *testing.T) {
 	var wg sync.WaitGroup
-	r := NewTxMap()
+	txMap := NewTxMap()
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			tx := BeginTx(r)
+			tx := BeginTx(txMap)
 			j := Get(tx, 0)
 			j = j + 1
 			Set(tx, 0, j)
@@ -33,5 +33,5 @@ func TestTxMap(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	t.Log(Get(r, 0))
+	t.Log(Get(txMap, 0))
 }
