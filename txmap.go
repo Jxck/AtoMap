@@ -57,39 +57,39 @@ func handleRequests(m map[int]int, r chan request) {
 	}
 }
 
-func Get(req chan request, key int) int {
+func (atomap *AtoMap) Get(key int) int {
 	result := make(chan int)
 	request := request{
 		requestType: GET,
 		key:         key,
 		result:      result,
 	}
-	req <- request
+	atomap.Tx <- request
 	return <-result
 }
 
-func Set(req chan request, key int, value int) {
+func (atomap *AtoMap) Set(key int, value int) {
 	request := request{
 		requestType: SET,
 		key:         key,
 		value:       value,
 	}
-	req <- request
+	atomap.Tx <- request
 }
 
-func Lock(req chan request) chan request {
+func (atomap *AtoMap) Lock() *AtoMap {
 	tx := make(chan request)
 	request := request{
 		requestType: LOCK,
 		tx:          tx,
 	}
-	req <- request
-	return tx
+	atomap.Tx <- request
+	return &AtoMap{tx}
 }
 
-func Unlock(req chan request) {
+func (atomap *AtoMap) Unlock() {
 	request := request{
 		requestType: UNLOCK,
 	}
-	req <- request
+	atomap.Tx <- request
 }

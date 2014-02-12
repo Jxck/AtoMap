@@ -18,14 +18,14 @@ func TestAtoMap(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			tx := Lock(txMap.Tx)
-			j := Get(tx, 0)
+			tx := txMap.Lock()
+			j := tx.Get(0)
 			j = j + 1
-			Set(tx, 0, j)
+			tx.Set(0, j)
 
-			actual := Get(tx, 0)
+			actual := tx.Get(0)
 			expected := j
-			Unlock(tx)
+			tx.Unlock()
 
 			if actual != expected {
 				t.Errorf("\ngot  %v\nwant %v", actual, expected)
@@ -33,5 +33,5 @@ func TestAtoMap(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	t.Log(Get(txMap.Tx, 0))
+	t.Log(txMap.Get(0))
 }
