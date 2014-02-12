@@ -21,7 +21,7 @@ type Request struct {
 	requestType RequestType
 	key         int
 	value       int
-	ret         chan int
+	result      chan int
 	tx          chan Request
 }
 
@@ -30,7 +30,7 @@ func HandleRequests(m map[int]int, r chan Request) {
 		req := <-r
 		switch req.requestType {
 		case GET:
-			req.ret <- m[req.key]
+			req.result <- m[req.key]
 		case SET:
 			m[req.key] = req.value
 		case BEGINTX:
