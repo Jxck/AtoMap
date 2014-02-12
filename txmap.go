@@ -82,12 +82,3 @@ func RunMap(r chan Request) {
 	m := make(map[int]int)
 	HandleRequests(m, r)
 }
-
-func main() {
-	r := make(chan Request)
-	go RunMap(r)
-	r = BeginTx(r)
-	Set(r, 0, 1)
-	log.Println(Get(r, 0))
-	EndTx(r)
-}
