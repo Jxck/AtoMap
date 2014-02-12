@@ -12,18 +12,23 @@ func init() {
 
 func TestTxMap(t *testing.T) {
 	var wg sync.WaitGroup
-	txMap := NewTxMap()
+	r := make(chan Request)
+	go runMap(r)
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			txMap.BeginTx()
-			j := txMap.Get(0)
+
+			tx = beginTx(r)
+			j := get(tx, 0)
 			j = j + 1
-			txMap.Set(0, j)
-			actual := txMap.Get(0)
+			set(tx, 0, j)
+
+			actual := get(0)
 			expected := j
-			txMap.EndTx()
+			txMap.end()
+			endTx(tx)
+
 			if actual != expected {
 				t.Errorf("\ngot  %v\nwant %v", actual, expected)
 			}
