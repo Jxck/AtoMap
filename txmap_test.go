@@ -18,14 +18,14 @@ func TestTxMap(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			tx := BeginTx(txMap)
+			tx := Lock(txMap)
 			j := Get(tx, 0)
 			j = j + 1
 			Set(tx, 0, j)
 
 			actual := Get(tx, 0)
 			expected := j
-			EndTx(tx)
+			Unlock(tx)
 
 			if actual != expected {
 				t.Errorf("\ngot  %v\nwant %v", actual, expected)

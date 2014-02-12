@@ -13,8 +13,8 @@ type RequestType int
 const (
 	SET RequestType = iota
 	GET
-	BEGINTX
-	ENDTX
+	LOCK
+	UNLOCK
 )
 
 type Request struct {
@@ -42,9 +42,9 @@ func HandleRequests(m map[int]int, r chan Request) {
 			req.result <- m[req.key]
 		case SET:
 			m[req.key] = req.value
-		case BEGINTX:
+		case LOCK:
 			HandleRequests(m, req.tx)
-		case ENDTX:
+		case UNLOCK:
 			return
 		}
 	}
@@ -70,19 +70,19 @@ func Set(req chan Request, key int, value int) {
 	req <- request
 }
 
-func BeginTx(req chan Request) chan Request {
+func Lock(req chan Request) chan Request {
 	tx := make(chan Request)
 	request := Request{
-		requestType: BEGINTX,
+		requestType: LOCK,
 		tx:          tx,
 	}
 	req <- request
 	return tx
 }
 
-func EndTx(req chan Request) {
+func Unlock(req chan Request) {
 	request := Request{
-		requestType: ENDTX,
+		requestType: UNLOCK,
 	}
 	req <- request
 }
