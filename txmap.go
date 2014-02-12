@@ -1,13 +1,5 @@
 package atomap
 
-import (
-	"log"
-)
-
-func init() {
-	log.SetFlags(log.Lshortfile)
-}
-
 type RequestType int
 
 const (
