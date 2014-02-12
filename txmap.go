@@ -25,6 +25,15 @@ type Request struct {
 	tx          chan Request
 }
 
+func NewTxMap() chan Request {
+	txmap := make(chan Request)
+	go func() {
+		m := make(map[int]int)
+		HandleRequests(m, txmap)
+	}()
+	return txmap
+}
+
 func HandleRequests(m map[int]int, r chan Request) {
 	for {
 		req := <-r
@@ -76,13 +85,4 @@ func EndTx(m chan Request) {
 		requestType: ENDTX,
 	}
 	m <- request
-}
-
-func NewTxMap() chan Request {
-	txmap := make(chan Request)
-	go func() {
-		m := make(map[int]int)
-		HandleRequests(m, txmap)
-	}()
-	return txmap
 }
