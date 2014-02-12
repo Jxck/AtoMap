@@ -17,16 +17,16 @@ const (
 	UNLOCK
 )
 
-type Request struct {
+type request struct {
 	requestType RequestType
 	key         int
 	value       int
 	result      chan int
-	tx          chan Request
+	tx          chan request
 }
 
-func NewTxMap() chan Request {
-	txmap := make(chan Request)
+func NewTxMap() chan request {
+	txmap := make(chan request)
 	go func() {
 		m := make(map[int]int)
 		HandleRequests(m, txmap)
@@ -34,7 +34,7 @@ func NewTxMap() chan Request {
 	return txmap
 }
 
-func HandleRequests(m map[int]int, r chan Request) {
+func HandleRequests(m map[int]int, r chan request) {
 	for {
 		req := <-r
 		switch req.requestType {
@@ -50,9 +50,9 @@ func HandleRequests(m map[int]int, r chan Request) {
 	}
 }
 
-func Get(req chan Request, key int) int {
+func Get(req chan request, key int) int {
 	result := make(chan int)
-	request := Request{
+	request := request{
 		requestType: GET,
 		key:         key,
 		result:      result,
@@ -61,8 +61,8 @@ func Get(req chan Request, key int) int {
 	return <-result
 }
 
-func Set(req chan Request, key int, value int) {
-	request := Request{
+func Set(req chan request, key int, value int) {
+	request := request{
 		requestType: SET,
 		key:         key,
 		value:       value,
@@ -70,9 +70,9 @@ func Set(req chan Request, key int, value int) {
 	req <- request
 }
 
-func Lock(req chan Request) chan Request {
-	tx := make(chan Request)
-	request := Request{
+func Lock(req chan request) chan request {
+	tx := make(chan request)
+	request := request{
 		requestType: LOCK,
 		tx:          tx,
 	}
@@ -80,8 +80,8 @@ func Lock(req chan Request) chan Request {
 	return tx
 }
 
-func Unlock(req chan Request) {
-	request := Request{
+func Unlock(req chan request) {
+	request := request{
 		requestType: UNLOCK,
 	}
 	req <- request
