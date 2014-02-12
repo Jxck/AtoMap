@@ -78,13 +78,11 @@ func EndTx(m chan Request) {
 	m <- request
 }
 
-func RunMap(r chan Request) {
-	m := make(map[int]int)
-	HandleRequests(m, r)
-}
-
 func NewTxMap() chan Request {
-	r := make(chan Request)
-	go RunMap(r)
-	return r
+	txmap := make(chan Request)
+	go func() {
+		m := make(map[int]int)
+		HandleRequests(m, txmap)
+	}()
+	return txmap
 }
