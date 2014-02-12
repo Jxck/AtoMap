@@ -43,22 +43,39 @@ func HandleRequests(m map[int]int, r chan Request) {
 
 func Get(m chan Request, key int) int {
 	result := make(chan int)
-	m <- Request{GET, key, 0, result, nil}
+	request := Request{
+		requestType: GET,
+		key:         key,
+		result:      result,
+	}
+	m <- request
 	return <-result
 }
 
 func Set(m chan Request, key int, value int) {
-	m <- Request{SET, key, value, nil, nil}
+	request := Request{
+		requestType: SET,
+		key:         key,
+		value:       value,
+	}
+	m <- request
 }
 
 func BeginTx(m chan Request) chan Request {
 	tx := make(chan Request)
-	m <- Request{BEGINTX, 0, 0, nil, tx}
+	request := Request{
+		requestType: BEGINTX,
+		tx:          tx,
+	}
+	m <- request
 	return tx
 }
 
 func EndTx(m chan Request) {
-	m <- Request{ENDTX, 0, 0, nil, nil}
+	request := Request{
+		requestType: ENDTX,
+	}
+	m <- request
 }
 
 func RunMap(r chan Request) {
