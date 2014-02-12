@@ -4,7 +4,20 @@ AtoMap
 atomic map
 
 
+## generator
+
+main/generate.go is a file generator script.
+you can genrate original atomap with key type and value type which you want.
+
+```
+$ go run main/generate.go -p packagename -k string -v MyType
+```
+
+this generates Atomic Map with  map[string]MyType.
+
 ## Usage
+
+default atomap has map[int]int.
 
 ```go
 m := NewAtoMap()
@@ -21,6 +34,12 @@ m2.Unlock()
 m1.Unlock()
 m.Get(0) // 2
 ```
+
+
+## Reference
+
+this library in reference to [http://www.amazon.com/dp/0321817141]
+
 
 ## License
 
