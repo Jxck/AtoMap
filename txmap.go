@@ -1,4 +1,4 @@
-package txmap
+package atomap
 
 import (
 	"log"
